@@ -1,0 +1,74 @@
+---
+title: "cat_food_brand"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(ggtext)
+df4_2 <- read_xlsx("../storytelling_data/4.2_data.xlsx")
+df4_2 %>% 
+  mutate(Type = fct_reorder(Type, -`Vol change`)) %>% 
+  ggplot(aes(`Vol change`, Type)) +
+  geom_col(fill = ifelse(str_starts(df4_2$Type, "Feline"), 'purple', 'grey50')) + 
+  geom_text(aes(x = ifelse(df4_2$`Vol change` < 0, 0.005, -0.005), 
+                label = Type), 
+            hjust = ifelse(df4_2$`Vol change` < 0, 0, 1),
+            color = ifelse(str_starts(df4_2$Type, "Feline"), 'purple', 'grey50')) +
+  scale_x_continuous(labels = scales::percent_format(),
+                     limits = c(-0.2, 0.2),
+                     expand = c(0,0),
+                     position = "top") + 
+  coord_cartesian(clip = "off") +
+  #annotate(geom = "richtext", x = 0, y = dim(df4_2)[1] + 3, label = "DECREASED | INCREASED" ) +
+  labs(title = "Cat food brands: **YoY Sales Change**   
+       <span style='color:grey50; font-size:8pt'>% CHANGE IN VOLUME ($)</span> ",  
+       subtitle = "<span style='color:grey50; font-size:8pt; '>DECREASED | INCREASED</span>") + 
+  theme(panel.background = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks.y = element_blank(), 
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(size = 6),
+        axis.line.x = element_line(),
+        aspect.ratio = 9/16,
+        plot.margin = unit(c(1,1,1,1), "cm"),
+        plot.title = element_markdown(),
+        plot.subtitle = element_markdown(hjust = 0.5)) 
+```
+
+
+```{r}
+df4_2 %>% 
+  mutate(Type = fct_reorder(Type, -`Vol change`)) %>% 
+  ggplot(aes(`Vol change`, Type)) +
+  geom_col(fill = case_when(df4_2$Type %in% c("Fran's Recipe", "Wholesome Goodness") ~ "#FF5F1F",
+                            df4_2$`Vol change` < 0 & !df4_2$Type %in% c("Fran's Recipe", "Wholesome goodness") ~ "#FF8C00",
+                            TRUE ~ "grey50")) + 
+  geom_text(aes(x = ifelse(df4_2$`Vol change` < 0, 0.005, -0.005), 
+                label = Type), 
+            hjust = ifelse(df4_2$`Vol change` < 0, 0, 1),
+            color = case_when(df4_2$Type %in% c("Fran's Recipe", "Wholesome Goodness") ~ "#FF5F1F",
+                            df4_2$`Vol change` < 0 & !df4_2$Type %in% c("Fran's Recipe", "Wholesome goodness") ~ "#FF8C00",
+                            TRUE ~ "grey50")) +
+  scale_x_continuous(labels = scales::percent_format(),
+                     limits = c(-0.2, 0.2),
+                     expand = c(0,0),
+                     position = "top") + 
+  coord_cartesian(clip = "off") +
+  #annotate(geom = "richtext", x = 0, y = dim(df4_2)[1] + 3, label = "DECREASED | INCREASED" ) +
+  labs(title = "Cat food brands: **YoY Sales Change**   
+       <span style='color:grey50; font-size:8pt'>% CHANGE IN VOLUME ($)</span> ",  
+       subtitle = "<span style='color:grey50; font-size:8pt; '>DECREASED | INCREASED</span>") + 
+  theme(panel.background = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks.y = element_blank(), 
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(size = 6),
+        axis.line.x = element_line(),
+        aspect.ratio = 9/16,
+        plot.margin = unit(c(1,1,1,1), "cm"),
+        plot.title = element_markdown(),
+        plot.subtitle = element_markdown(hjust = 0.5)) 
+```
+
