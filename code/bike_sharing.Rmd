@@ -1,0 +1,74 @@
+---
+title: "bike_sharing"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(ggtext)
+showtext::showtext_auto()
+
+df <- read_csv("../help_ot/01-bike_sharing/day.csv") %>% 
+  select(dteday, casual, registered, cnt)
+df_summ <- df %>% 
+  separate(dteday, into = c("year", "month", "day"), remove = TRUE) %>% 
+  group_by(year, month) %>% 
+  summarise(across(casual:cnt, ~round(sum(.)/1000, 0))) %>%
+  ungroup() %>% 
+  unite(ym, year, month, sep = "-", remove = FALSE) %>% 
+  mutate(num = row_number(),
+         x_casual = num - .2,
+         x_reg = num + .2)
+scale_factor <- 2
+
+df_summ %>% 
+  ggplot(aes(x = num)) +
+  geom_col(aes(y = cnt)) +
+  geom_text(aes(y = cnt, label = cnt), vjust = 1, size = scale_factor * 1, nudge_y = -1) +
+  geom_segment(aes(x = x_casual, xend = x_casual, y = 0, yend = casual), color = "white") +
+  geom_point(aes(x = x_casual, y = casual), color = "white", size = .8) +
+  geom_text(aes(x = x_casual, y = casual, label = casual), vjust = 0, size = scale_factor * 1, nudge_y = 2, color = "white") +
+  geom_segment(aes(x = x_reg, xend = x_reg, y = 0, yend = registered), color = "yellow") +
+  geom_point(aes(x = x_reg, y = registered), size = .8, color = "yellow") + 
+  geom_text(aes(x = x_reg, y = registered, label = registered), vjust = 0, size = scale_factor * 1, nudge_y = 2, color = "yellow") +
+  scale_x_continuous(
+                     breaks = seq(1, 24, 1),
+                     labels = rep(seq(1, 12, 1),2),
+                     expand = c(0, 0)) +
+  scale_y_continuous(limits = c(0, 230),
+                     breaks = c(seq(0, 200, 50), 230),
+                     expand = c(0, 0 ),
+                     labels = function(x) ifelse(x == 230, paste(x, "Thousands"), paste(x)),
+                     position = "right") +
+  # coord_cartesian(clip = "off") +
+  # facet_wrap(~ year, scales = "free_x", strip.position = "bottom") +
+  # annotate(geom = "text", x = seq(.9,23.9,1), y = -4, label = rep(seq(1,12,1),2), color = "grey40", size = 3) +
+  # annotate(geom = "rect", xmin = .55, xmax = 12.45, ymin = -20, ymax = -10, alpha = .4) +
+  # annotate("text", x = 6.5, y = -15, label ="2011", color = "grey") +
+  # annotate(geom = "rect", xmin = 12.55, xmax = 24.45, ymin = -20, ymax = -10, alpha = .4, color = "grey") +
+  # annotate("text", x = 18.5, y = -15, label ="2012", color = "grey") +
+  # coord_cartesian(expand = FALSE) +
+  facet_wrap(~ year, strip.position = "bottom", scales = "free_x") +
+  labs(x = "",
+       y = "",
+       title = "Sharing Bike <span style = 'color:grey80;'>**Users**</span> · <span style = 'color:yellow'>**Subscribers**</span> · <span style = 'color:white'>**Casual-users**</span> in Thousands",
+       caption = "Visulization:J.P.Zhao <span style = 'color:yellow'>Data: Bike Sharing</span>") +
+  theme(text = element_text(color = "grey40"),
+        panel.background = element_rect(fill = "black", color = NA),
+        plot.background = element_rect(fill = "black", color = NA),
+        panel.grid = element_blank(),
+        panel.border = element_blank(),
+        axis.ticks = element_blank(),
+        panel.spacing = unit(0.1, "cm"),
+        axis.text.x = element_text(margin = margin(t = 1, b = 1)),
+        axis.text.y = element_text(margin = margin(l = 3), size = scale_factor * 3.5),
+        strip.background = element_rect(fill = "grey10", color = "transparent"),
+        strip.placement = "outside",
+        strip.text = element_text(color = "grey70"),
+        plot.title = element_markdown(margin = margin(t = 10, b = 0), size = 10, hjust = .5),
+        plot.caption = element_markdown(color = "grey50", hjust = 0, size = scale_factor * 4),
+        plot.caption.position = "plot",
+        plot.margin = margin(t = 45, r = 45, b = 30, l = 45)
+        ) 
+ggsave("practice_2021-11-25_BikeSharing.png", scale = scale_factor)
