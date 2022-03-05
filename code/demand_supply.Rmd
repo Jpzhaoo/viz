@@ -1,0 +1,72 @@
+---
+title: "demand_supply"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(lubridate)
+df <- readxl::read_xlsx('../storytelling_data/2.4_exercise.xlsx')
+df$DATE <-  as.character(df$DATE, format='%m')
+p1 <- df[1:9,] %>% 
+  pivot_longer(-DATE, names_to = 'QUANTITY', values_to = 'VALUE') %>% 
+  ggplot(aes(x=DATE, y=VALUE, group=fct_rev(QUANTITY), fill=QUANTITY, color=QUANTITY)) + 
+  geom_bar(stat = 'identity',position = 'dodge') +
+  theme(panel.background = element_blank()) +
+  scale_color_manual(values = c('lightblue','darkblue')) + 
+  scale_fill_manual(values = c('lightblue', 'white')) + 
+  labs(x='2019', y="<span style='color:grey50'>NUMBER OF PROJECT HOURS</span>", title = "**Demand vs capacity over time**   
+       <span style='font-size:11pt'>
+       <span style='color:darkblue'>DEMAND</span>
+       <span style='color:grey50'>|</span>
+       <span style='color:lightblue'>CAPACITY</span>
+       </span>") + 
+  theme(legend.position = 'none',
+        axis.title.x = element_text(hjust = 0),
+        axis.title.y = element_markdown(hjust=1),
+        axis.ticks.x = element_blank(),
+        axis.ticks.y = element_line(colour = 'grey60'),
+        axis.line = element_line(color = 'grey60'),
+        plot.title = element_markdown()) + 
+  scale_y_continuous(breaks = seq(0,60000,10000),
+                     limits = c(0,60000),
+                     expand = c(0,0))
+p1
+```
+
+```{r}
+df_2 <- df[1:9,] %>% 
+  pivot_longer(-DATE, names_to = 'QUANTITY', values_to = 'VALUE')
+```
+
+```{r}
+p2 <- df_2 %>% 
+  ggplot(aes(x=VALUE, y=DATE, fill=QUANTITY)) + 
+  geom_line(aes(group=DATE), size=14, color=blues[5])+
+  geom_point(size=16,pch=21, aes(color=QUANTITY)) + 
+  scale_fill_manual(values = c(blues[6], 'white')) +
+  scale_color_manual(values = c(blues[6], blues[8])) + 
+  geom_text(data=subset(df_2, QUANTITY=='DEMAND'),
+            aes(label=round(VALUE/1000,0)), color=blues[6]) +
+  geom_text(data=subset(df_2, QUANTITY=='CAPACITY'),
+            aes(label=round(VALUE/1000,0)), color='white') +
+  scale_x_continuous(limits=c(0,55000), expand=c(0,0)) + 
+  coord_flip() +
+  labs(y="<span style='color:grey50'>2019</span>",x="# OF PROJECT HOURS (THOUSANDS)",
+       title = expression(bold('Demand vs capacity over time'))) + 
+  annotate("text",x=40000,y=9, label=expression(bold('DEMAND')), color=blues[5]) +
+  annotate("text",x=19000,y=9, label=expression(bold('CAPACITY')), color=blues[6]) +
+  theme(axis.ticks = element_blank(),
+        axis.line.x = element_line(color = 'grey50'),
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(color='grey50'),
+        axis.title.x = element_markdown(hjust=0.03),
+        axis.title.y = element_text(color='grey50'),
+        legend.position = 'none',
+        panel.background = element_blank(),
+        plot.title = element_text(size=18)) 
+  
+p10
+```
+
+
