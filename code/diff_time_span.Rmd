@@ -1,0 +1,79 @@
+---
+title: "diff_time_span"
+output: html_document
+---
+```{r}
+library(tidyverse)
+library(gridExtra)
+df2_8 <- read_xlsx('../storytelling_data/2.8_exercise.xlsx')
+colnames(df2_8)[1] <- 'Time'
+df2_8[c(1,2,3,4,5,10),]
+df2_8_1 <- df2_8[c(1,2,3,4,5,10), 1:3] %>% 
+  pivot_longer(c('Loan Loss Reserves', 'NPLs'), names_to = 'Categories', values_to = 'Value') 
+p1 <- df2_8_1 %>% ggplot(aes(x=Time, y=Value, group=Categories, color=Categories)) +
+  geom_line() +
+  geom_point() + 
+  coord_cartesian(ylim = c(0,2), clip = 'off') +
+  annotate('rect', xmin = 5.7, xmax = 6.3, ymin = -0.4, ymax = 2, alpha=0.2, fill='grey') + 
+  scale_x_discrete(expand = c(0,0), labels=c("2014","2015","2016","2017","2018","2019")) +
+  geom_text(data=subset(df2_8_1, Categories=='Loan Loss Reserves'),
+            aes(x=Time, y=Value,label=str_c('$',Value)), 
+            vjust=0, nudge_y = 0.05,size=3)  + 
+  geom_text(data=subset(df2_8_1, Categories=='NPLs'),
+            aes(x=Time, y=Value,label=str_c('$',Value)), 
+            vjust=1, nudge_y = -0.1,size=3) + 
+  geom_richtext(aes(x=1,y=0.95, label="**NPLs**"), 
+                color=plot_cols[3], fill=NA, label.color=NA) +
+  geom_richtext(aes(x=1,y=1.4, label="**Reserves**"), 
+                color=plot_cols[2], fill=NA, label.color=NA, nudge_x = 0.1) +
+  scale_color_manual(values = c(plot_cols[2],plot_cols[3])) +
+  labs(y="", x="<span style='color:grey50'>FISCAL YEAR</span>") +
+  theme(panel.background = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.line.x = element_line(color='grey50'),
+        axis.text.y = element_blank(),
+        legend.position = 'none',
+        axis.title.x = element_markdown(hjust = 0))
+#添加阴影图层
+#l1 <- geom_rect(aes(xmin=5.7,xmax=6.3,ymin=-Inf,ymax=Inf), fill='grey80', alpha=0.05, inherit.aes = FALSE)
+#p11_1 <- insertLayer(p11_1,after=1,l1)
+
+
+df2_8_2 <- df2_8[-c(1,2,3,4,5,10), 1:3]
+colnames(df2_8_2)[2] <- 'Reserves'
+df2_8_2 <- df2_8_2 %>% 
+  mutate(compare=Reserves-NPLs) %>%
+  mutate(compare=ifelse(compare<0, 1, 0)) %>% 
+  mutate(nudge=ifelse(compare==0,1,-1)) %>% 
+  pivot_longer(c('Reserves', 'NPLs'), names_to = 'Categories', values_to = 'Value')
+R <- subset(df2_8_2, Categories=='Reserves')
+N <- setdiff(df2_8_2,R) %>% 
+  mutate(compare=ifelse(compare==0,1,0))
+
+
+p2 <- df2_8_2 %>% ggplot(aes(x=Time, y=Value, group=Categories, color=Categories)) +
+  geom_line() +
+  geom_point() + 
+  coord_cartesian(ylim = c(0,2), clip = 'off') +
+  annotate('rect', xmin = 0, xmax = 5, ymin = -0.4, ymax = 2, alpha=0.2, fill='grey') + # x的范围为了盖住字体
+  scale_x_discrete(expand=c(0,0),labels=c('Q1','Q2','Q3','Q4')) +
+  geom_text(data=R, aes(label=str_c('$', Value)), 
+            vjust=R$compare, nudge_y = R$nudge*0.05, size=2.5) +
+  geom_text(data=N, aes(label=str_c('$', Value)), 
+            vjust=N$compare, nudge_y = N$nudge*(-0.05), size=2.5) + 
+  scale_color_manual(values = c(plot_cols[2],plot_cols[3])) +
+  labs(y="", x="<span style='color:grey50'>2019</span>") +
+  theme(panel.background = element_blank(),
+        panel.grid = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.ticks.x = element_line(color='grey90'),
+        axis.ticks.length.x = unit(.8, "cm"),
+        axis.line.x = element_line(color='grey90'),
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(color='grey50', hjust = -2, vjust = 0.2),
+        legend.position = 'none',
+        axis.title.x = element_markdown(hjust = 0, vjust = 1))
+
+grid.arrange(p1, p2,ncol=2,widths=c(3/4,1/4))
+```
+
