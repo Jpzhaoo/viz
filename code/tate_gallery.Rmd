@@ -1,0 +1,159 @@
+---
+title: "Untitled"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(tidytuesdayR)
+library(tidyverse)
+library(scales)
+library(extrafont)
+
+tuesdata <- tt_load('2021-01-12')
+artists <- tuesdata$artists
+artwork <- tuesdata$artwork
+
+artists_clean <- artists %>% 
+  rename(artist_id = id,
+         birth = yearOfBirth)
+
+artwork_clean_1 <- artwork %>% 
+  rename(artist_id = artistId) %>% 
+  left_join(artists_clean, by = "artist_id")
+
+artwork_clean_2 <- artwork_clean_1 %>% 
+  mutate(age_of_artist = year - birth) %>% 
+  filter(age_of_artist > 0)
+  
+# artwork_clean_2 %>% 
+#   ggplot(aes(x = year, y = age_of_artist)) +
+#   geom_point()
+
+artwork_clean_3 <- artwork_clean_2 %>% 
+  mutate(period = (year %/% 50)*50) %>% 
+  filter(!is.na(origin),
+         !is.na(year),
+         !is.na(continent)) %>% 
+  select(id, period, year, age_of_artist, title, artist_id, name, gender, birth, origin, continent)
+
+# artwork_clean_3 %>% 
+#   ggplot(aes(x = period, y = 1)) +
+#   geom_jitter(width = 20, height = 0.2) +
+#   ylim(0,2)
+
+
+log_count <- artwork_clean_3 %>%
+  count(period, sort = TRUE) %>% 
+  mutate(log_count = log(n)) %>%
+  select(-n)
+
+artwork_clean <- artwork_clean_3 %>%
+  left_join(log_count, by = "period")
+
+set.seed(2021)
+
+art_flowers <- artwork_clean %>%
+  mutate(
+    radius = log_count/5,
+    theta = runif(nrow(artwork_clean), 0, 1)*2*pi,
+    distance_to_center = radius*runif(nrow(artwork_clean), 0, 1),
+    x = period + distance_to_center*cos(theta)*15,
+    y = log_count + distance_to_center*sin(theta)
+    )
+
+# art_flowers %>%
+#   ggplot(aes(x = x, y = y )) +
+#   geom_point(alpha=0.5) +
+#   ylim(-1, 15) +
+#   coord_fixed(ratio = 15)
+
+stems <- artwork_clean %>% 
+  group_by(period) %>% 
+  summarise(
+    x = mean(period),
+    xend = mean(period),
+    y = 0,
+    yend = mean(log_count)
+  )
+
+dates <- seq(1550, 2000, by = 50)
+
+palette_colors = c("Europe" = alpha("white", 0.1), "Asia" = "#7B45C9", "North America" = "#79A9AC", "Oceania" = "#A5D6A5", "South America" = "#EBA491", "Africa" = "#E4797A")
+
+art_flowers %>% 
+  ggplot(aes(x = x, y = y )) +
+  annotate(geom = "curve",
+         x = stems$x,
+         xend = stems$xend,
+         y = stems$y,
+         yend = stems$yend,
+         curvature = 0.2,
+         color = "darkgreen",
+         size = 0.6) +
+  geom_curve(aes(x = period,
+                 xend = x,
+                 y = log_count,
+                 yend = y),
+             size = 0.05,
+             curvature = 0.1,
+             color = "9CCE81",
+             alpha = 0.5) +
+  geom_point(aes(color = continent),
+             size = 2,
+             shape = 21,
+             fill = alpha("grey50", 0.1)) +
+  annotate(geom = "point",
+           x = 1797.580,
+           y = 10.29637,
+           size = 2,
+           shape = 21,
+           fill = alpha("black", 0.6)) +
+  annotate(geom = "curve",
+           x = 1850,
+           xend = 1797.580,
+           y = 14,
+           yend = 10.55,
+           curvature = 0.45,
+           arrow = arrow(angle = 30, length = unit(0.3, "cm"))) +
+  annotate(geom = "text",
+           x = 1855,
+           y = 14,
+           label = expression(paste(italic("The Angel Standing in the Sun"), " – JMW Turner, 1846", sep = "")),
+           hjust = 0,
+           family = "Trebuchet MS",
+           size = 4.5) +
+  annotate(geom = "text",
+           x = dates,
+           y = rep(-0.5, 10),
+           label = paste(as.character(dates), "-", as.character(dates + 49), sep = ""),
+           size = 4,
+           color = "darkgreen",
+           family = "Trebuchet MS") +
+  annotate(geom = "text",
+           x = 1520,
+           y = 15,
+           label = "The Blossoming Art Of The Tate Galleries",
+           hjust = 0,
+           size = 7) +
+  annotate(geom = "text",
+           x = 1520,
+           y = 14,
+           label = "Each dandelion seed is a piece of artwork that was created during the corresponding 50-year period.\nThe height of the flower also rises with the number of pieces in the period (on a log scale).\nThe geographic diversity of artists has exploded since the late 19th century.\nData from the Tate Collection.",
+           hjust = 0,
+           vjust = 1,
+           size = 4) +
+  scale_color_manual(values = palette_colors) +
+  ylim(-1, 15) +
+  coord_fixed(ratio = 15) +
+  labs(color = "Artist's continent of origin:") +
+  theme_void() +
+  theme(
+    legend.position=c(0.1145, 0.55),
+    text = element_text(family = "Trebuchet MS"),
+    panel.background = element_rect(fill = "#f5E5C9",
+                                    color = "#f5E5C9")
+  )
+```
+
