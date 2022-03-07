@@ -17,11 +17,12 @@
 - 🔗 [汉密尔顿月销售额变化](https://github.com/Jpzhaoo/viz/blob/main/code/monthly_sales.Rmd)
 <img align="left" alt="PNG" src="https://github.com/Jpzhaoo/viz/blob/main/graphs/monthly_sales2.png" />  
 
+- 🔗 [供给 vs 需求](https://github.com/Jpzhaoo/viz/blob/main/code/demand_supply.Rmd)
+<img align="center" alt="PNG" src="https://github.com/Jpzhaoo/viz/blob/main/graphs/supply_demand1.png" />  
+
 - 🔗 [不同猫粮品牌销售对比](https://github.com/Jpzhaoo/viz/blob/main/code/cat_food_brand.Rmd)
 <img align="center" alt="PNG" width = "600" height = "400" src="https://github.com/Jpzhaoo/viz/blob/main/graphs/cat_food_brand1.png" />
 <img align="center" alt="PNG" width = "600" height = "400" src="https://github.com/Jpzhaoo/viz/blob/main/graphs/cat_food_brand2.png" />
 
-- 🔗 [不同时间跨度图像](https://github.com/Jpzhaoo/viz/blob/main/code/diff_time_span.Rmd)
-<img align="center" alt="PNG" src="https://github.com/Jpzhaoo/viz/blob/main/graphs/diff_time_span.png" />
 
 
